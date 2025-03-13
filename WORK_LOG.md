@@ -1,9 +1,12 @@
 Name: YOUR NAME HERE
 
-| Date    |  Time  |                                     Update |
-|:--------|:------:|-------------------------------------------:|
-| April 5 | 9-10pm | I tried to write abstract, efficient code. |
-|         |        |                                            |
+| Date |     Time      |                                                                                                                                                                                                                                                                                                             Update |
+|:-----|:-------------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| 3/5  | 10:55-11:55AM |                                                                                                                                                                                                            Mr. Blick introduced the problem set and then we started theorizing about data structures we would use. |
+| 3/7  |  8:45-9:55AM  | We went to the whiteboards and thought about potential ways to lower the threshold of words we have to calculate edit distance for. I came up with an idea to iterate through the Trie and build words, subtracting the differece of the words from the edit distance and terminating if the threshold is reached. |
+| 3/11 |  2:00-2:30PM  |                                                                                                                                                                                                                                               I listened to Mr. Blick's presentation on finding the edit distance. |
+| 3/11 |  2:30-3:00PM  |                                                                                                                                                                                                  I wrote code to set up and initialize a Trie with all of the words in it. I ported my Trie class from SpellCheck. |
+| 3/13 | 12:35-1:45PM  |                                 I wrote a function to find the edit distance based on what we discussed last time in class. I also realized that I had forgotten to commit last time and that I had not committed anything, as I only started writing code in the last class. I apologize for the lack of commits. |
 
 
 To add a new row to the table, click into a cell and then hit shift-enter.
