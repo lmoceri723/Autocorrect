@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Autocorrect
@@ -8,78 +9,34 @@ import java.io.IOException;
  * A command-line tool to suggest similar words when given one not in the dictionary.
  * </p>
  * @author Zach Blick
- * @author YOUR NAME HERE
+ * @author Landon Moceri
  */
+
 public class Autocorrect {
-    private class TrieNode {
-        // Each node has space for 26 children, one for each letter of the alphabet, plus one for other characters
-        TrieNode[] children = new TrieNode[26];
-        // If a node is a word ending, set a boolean to communicate it
-        boolean isWordEnding = false;
-    }
+    public String[] dictionary;
+    public int threshold;
 
-    private class Trie {
-        TrieNode root = new TrieNode();
+    public TST dictTree;
 
-        public char[] formatWord(String word) {
-            return word.toCharArray();
-        }
-
-        // Add a word to the tree
-        public void addWord(String word) {
-            TrieNode current = root;
-
-            for (char letter : formatWord(word)) {
-                int index = letter;
-
-                // If the node doesn't exist, create it
-                if (current.children[index] == null) {
-                    current.children[index] = new TrieNode();
-                }
-                // Move to the next node
-                current = current.children[index];
-            }
-            // Set the last node to be the end of a word
-            current.isWordEnding = true;
-        }
-
-        // Search for a word in the tree
-        // Does basically the same checks as addWord by following its path to validate a word
-        public boolean searchWord(String word) {
-            TrieNode node = root;
-
-            for (char letter : formatWord(word)) {
-                int index = letter;
-                // If the node doesn't exist, no combination of these letters makes a word
-                if (node.children[index] == null) {
-                    return false;
-                }
-                // Move on to the next node
-                node = node.children[index];
-            }
-
-            // Once we've gotten to the end of the word, we can check if it's a valid ending and return the result
-            return node.isWordEnding;
-        }
-    }
+    ArrayList<ArrayList<String>> matches;
 
     /**
      * Constucts an instance of the Autocorrect class.
      * @param words The dictionary of acceptable words.
      * @param threshold The maximum number of edits a suggestion can have.
      */
-    public String[] dictionary;
-    public int threshold;
-
-    public Trie trie;
-
     public Autocorrect(String[] words, int threshold) {
         this.dictionary = words;
         this.threshold = threshold;
 
-        trie = new Trie();
+        matches = new ArrayList<ArrayList<String>>();
+        for (int i = 0; i <= threshold; i++) {
+            matches.add(new ArrayList<String>());
+        }
+
+        dictTree = new TST();
         for (String word : words) {
-            trie.addWord(word);
+            dictTree.addWord(word);
         }
     }
 
@@ -113,6 +70,35 @@ public class Autocorrect {
 
         return results[n][m];
     }
+
+    public void dictDFS(TST.TSTNode node, String mistyped, String currentWord) {
+        if (node == null) {
+            return;
+        }
+
+        // Traverse the left subtree
+        dictDFS(node.left, mistyped, currentWord);
+
+        // Check the current node
+        String newWord = currentWord + node.character;
+        int distance = editDistance(mistyped, newWord);
+        if (node.isWordEnding && distance <= threshold) {
+            matches.get(distance).add(newWord);
+        }
+
+        // Early pruning
+        int minDistance = distance - Math.abs(mistyped.length() - newWord.length());
+        if (minDistance > threshold) {
+            return;
+        }
+
+        // Traverse the middle subtree
+        dictDFS(node.middle, mistyped, newWord);
+
+        // Traverse the right subtree
+        dictDFS(node.right, mistyped, currentWord);
+    }
+
     /**
      * Runs a test from the tester file, AutocorrectTester.
      * @param typed The (potentially) misspelled word, provided by the user.
@@ -120,8 +106,22 @@ public class Autocorrect {
      * to threshold, sorted by edit distnace, then sorted alphabetically.
      */
     public String[] runTest(String typed) {
+        // Plan: start at the root of the trie, append each initialized child node to its own word and check the edit distance
+        // Subtract the difference of the length of the word from the threshold to get a max distance
+        // If the distance is less than or equal to the threshold, keep going until an actual match is found
+        // Keep progressing down the tree until all branches are explored or terminated
+        dictDFS(dictTree.root, typed, "");
 
-        return new String[0];
+        // Add all matches starting from the smallest distance
+        ArrayList<String> results = new ArrayList<String>();
+
+        for (ArrayList<String> distanceMatches : matches) {
+            for (String match : distanceMatches) {
+                results.add(match);
+            }
+        }
+
+        return results.toArray(new String[0]);
     }
 
     /**
