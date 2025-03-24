@@ -1,0 +1,32 @@
+Time Complexity Analysis:
+
+    1. Initializing the data structures: O(N * a),
+        where N is the length of the dictionary and a is the average length of the words in the dictionary.
+        - It takes O(N) time to iterate through the dictionary file and add each word to the TST.
+        - It takes O(a) time to add each word to the TST.
+
+    2. Generating all matching candidates:
+    best case: O(m), where m is the length of the input string.
+    worst case: O(m * n), where m is the length of the input string and n is the number of nodes in the TST.
+        - The DFS method is called on each TST node, which in its worst case will happen for each node in the TST.
+        - In its best case, the method will eliminate any branches with too high an edit distance
+        - This would lower the number of nodes visited to O(m).
+
+    3. Evaluating Edit Distance: O(m * l), where m is the length of the input string and l is the length of the candidate word.
+        - The edit distance is calculated using tabulation, which takes O(m * l) time.
+        - This evaluation is done for each call of the DFS method.
+
+    4. Transferring the candidates to an array: O(c), where c is the number of candidates.
+        - The candidates are transferred to an array iteratively in O(c) time.
+
+Final Time Complexity:
+
+    Setup: O(N * a)
+    N = number of words in the dictionary
+    a = average length of the words in the dictionary
+
+    Each Query: O(m^2 * n * l + c)
+    m = length of the input string
+    n = number of nodes in the TST
+    l = length of the candidate word
+    c = number of candidates
