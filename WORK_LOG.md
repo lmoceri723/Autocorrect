@@ -9,6 +9,7 @@ Name: YOUR NAME HERE
 | 3/13 | 12:35-1:45PM  |                                                   I wrote a function to find the edit distance based on what we discussed last time in class. I also realized that I had forgotten to commit last time and that I had not committed anything, as I only started writing code in the last class. I apologize for the lack of commits. |
 | 3/17 | 10:55-11:55AM |                                                                                                                                                                                              I started writing the code for my Trie DFS function. I got all of my base cases done and am ready to finish the method early next class |
 | 3/19 | 9:00-10:00AM  | I finished my Trie DFS function. It worked in a good amount of time, so I converted it into a TST which made the program run even faster. My program passes the test cases in ~30ms. Now I am ready to move on to README and creating a terminal interface. I also realized that I forgot to commit at the end of last class. Sorry! |
+| 3/24 | 9:00-10:15AM  |                                                                                           I fixed a bug with early pruning, which I found when I got rid of the tester file and made my own terminal prompt. I made a basic but functional interface to type words and recieve suggestions. I also cleaned up and commented my code. |
 
 
 To add a new row to the table, click into a cell and then hit shift-enter.

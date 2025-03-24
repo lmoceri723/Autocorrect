@@ -13,31 +13,31 @@ import java.util.ArrayList;
  */
 
 public class Autocorrect {
+    // The dictionary of words to compare against
     public String[] dictionary;
+
+    // The maximum edit distance to consider
     public int threshold;
 
+    // The TST dictionary tree
     public TST dictTree;
-
-    ArrayList<ArrayList<String>> matches;
 
     /**
      * Constucts an instance of the Autocorrect class.
-     * @param words The dictionary of acceptable words.
-     * @param threshold The maximum number of edits a suggestion can have.
      */
-    public Autocorrect(String[] words, int threshold) {
-        this.dictionary = words;
-        this.threshold = threshold;
-
-        matches = new ArrayList<ArrayList<String>>();
-        for (int i = 0; i <= threshold; i++) {
-            matches.add(new ArrayList<String>());
-        }
+    public Autocorrect() {
+        this.dictionary = loadDictionary("large");
+        this.threshold = 1;
 
         dictTree = new TST();
-        for (String word : words) {
+        for (String word : dictionary) {
             dictTree.addWord(word);
         }
+    }
+
+    // Set the threshold for the edit distance
+    public void setThreshold(int threshold) {
+        this.threshold = threshold;
     }
 
     // Uses tabulation to find the edit Levenshtein distance between two words
@@ -71,32 +71,35 @@ public class Autocorrect {
         return results[n][m];
     }
 
-    public void dictDFS(TST.TSTNode node, String mistyped, String currentWord) {
+    public void dictDFS(TST.TSTNode node, String mistyped, String currentWord, ArrayList<ArrayList<String>> matches) {
         if (node == null) {
             return;
         }
 
-        // Traverse the left subtree
-        dictDFS(node.left, mistyped, currentWord);
+        // Traverse the left subtree first
+        // As we want to go from the smallest words to the largest
+        // So we need to traverse as far left as we can before we start checking the words
+        dictDFS(node.less, mistyped, currentWord, matches);
 
         // Check the current node
-        String newWord = currentWord + node.character;
+        String newWord = currentWord + node.value;
         int distance = editDistance(mistyped, newWord);
         if (node.isWordEnding && distance <= threshold) {
             matches.get(distance).add(newWord);
         }
 
-        // Early pruning
-        int minDistance = distance - Math.abs(mistyped.length() - newWord.length());
-        if (minDistance > threshold) {
+        // Early pruning if the branch results in a distance greater than the threshold in its min case
+        int leftover = Math.abs(mistyped.length() - newWord.length());
+        int minDistance = distance - leftover;
+        if (minDistance > threshold + 1) {
             return;
         }
 
         // Traverse the middle subtree
-        dictDFS(node.middle, mistyped, newWord);
+        dictDFS(node.equal, mistyped, newWord, matches);
 
         // Traverse the right subtree
-        dictDFS(node.right, mistyped, currentWord);
+        dictDFS(node.greater, mistyped, currentWord, matches);
     }
 
     /**
@@ -106,22 +109,38 @@ public class Autocorrect {
      * to threshold, sorted by edit distnace, then sorted alphabetically.
      */
     public String[] runTest(String typed) {
-        // Plan: start at the root of the trie, append each initialized child node to its own word and check the edit distance
-        // Subtract the difference of the length of the word from the threshold to get a max distance
-        // If the distance is less than or equal to the threshold, keep going until an actual match is found
-        // Keep progressing down the tree until all branches are explored or terminated
-        dictDFS(dictTree.root, typed, "");
+        boolean result = dictTree.searchWord(typed);
+        if (result == true) {
+            return new String[]{typed};
+        }
 
-        // Add all matches starting from the smallest distance
-        ArrayList<String> results = new ArrayList<String>();
+        // Create and initialize list of lists to store the matches
+        ArrayList<ArrayList<String>> matches = new ArrayList<ArrayList<String>>();
+        for (int i = 0; i <= threshold; i++) {
+            matches.add(new ArrayList<String>());
+        }
 
+        // Traverse the dictionary tree to find matches
+        dictDFS(dictTree.root, typed, "", matches);
+
+        // Count the number of matches
+        int size = 0;
         for (ArrayList<String> distanceMatches : matches) {
-            for (String match : distanceMatches) {
-                results.add(match);
+            size += distanceMatches.size();
+        }
+
+        // Create and fill an array to store the results
+        String[] results = new String[size];
+        int index = 0;
+
+        for (ArrayList<String> match : matches) {
+            for (String word : match) {
+                results[index] = word;
+                index++;
             }
         }
 
-        return results.toArray(new String[0]);
+        return results;
     }
 
     /**
@@ -129,13 +148,12 @@ public class Autocorrect {
      * @param dictionary The name of the textfile, [dictionary].txt, in the dictionaries directory.
      * @return An array of Strings containing all words in alphabetical order.
      */
-    private static String[] loadDictionary(String dictionary)  {
+    private static String[] loadDictionary(String dictionary) {
         try {
             String line;
             BufferedReader dictReader = new BufferedReader(new FileReader("dictionaries/" + dictionary + ".txt"));
             line = dictReader.readLine();
 
-            // Update instance variables with test data
             int n = Integer.parseInt(line);
             String[] words = new String[n];
 
@@ -144,8 +162,7 @@ public class Autocorrect {
                 words[i] = line;
             }
             return words;
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
